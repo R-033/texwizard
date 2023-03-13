@@ -6,4 +6,6 @@ The main purpose of this script is to be a more stable alternative to TexMod. It
 
 Compiled .asi script and an example pack are included in <a href=https://github.com/R-033/texwizard/releases>releases</a>.
 
+For usage refer to <a href=https://github.com/R-033/texwizard/wiki>wiki</a>.
+
 Thanks to nlgxzef for help.
