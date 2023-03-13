@@ -3,6 +3,7 @@
 #include <string>
 #include <windows.h>
 #include "includes\injector\injector.hpp"
+#include "includes\injector\utility.hpp"
 #include "includes\IniReader.h"
 #include "TexWizard.h"
 
@@ -14,13 +15,13 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
 		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(base);
 		IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
 
-		if ((base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base)) == 0x7C4040) // Check if .exe file is compatible - Thanks to thelink2012 and MWisBest
+		if ((base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base)) == EntryPoint) // Check if .exe file is compatible - Thanks to thelink2012 and MWisBest
 		{
 			Init();
 		}
 		else
 		{
-			MessageBoxA(NULL, "This .exe is not supported.\nPlease use v1.3 speed.exe (5,75 MB (6.029.312 bytes)).", "TexWizard", MB_ICONERROR);
+			MessageBoxA(NULL, WrongEntryPointErrorString, "TexWizard", MB_ICONERROR);
 			return FALSE;
 		}
 	}

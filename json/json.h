@@ -135,8 +135,7 @@ license you like.
 #include <cstring>
 #include <memory>
 
-#pragma pack(push)
-#pragma pack()
+#pragma pack(push, 8)
 
 namespace Json {
 template <typename T> class SecureAllocator {
@@ -460,8 +459,7 @@ class ValueConstIterator;
 #include "forwards.h"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
-#pragma pack(push)
-#pragma pack()
+#pragma pack(push, 8)
 
 namespace Json {
 
@@ -579,8 +577,7 @@ public:
 #pragma warning(disable : 4251 4275)
 #endif // if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
 
-#pragma pack(push)
-#pragma pack()
+#pragma pack(push, 8)
 
 /** \brief JSON (JavaScript Object Notation).
  */
@@ -963,7 +960,7 @@ public:
   /// \post type() is arrayValue
   void resize(ArrayIndex newSize);
 
-  ///@{
+  //@{
   /// Access an array element (zero based index). If the array contains less
   /// than index element, then null value are inserted in the array so that
   /// its size is index+1.
@@ -971,15 +968,15 @@ public:
   /// this from the operator[] which takes a string.)
   Value& operator[](ArrayIndex index);
   Value& operator[](int index);
-  ///@}
+  //@}
 
-  ///@{
+  //@{
   /// Access an array element (zero based index).
   /// (You may need to say 'value[0u]' to get your compiler to distinguish
   /// this from the operator[] which takes a string.)
   const Value& operator[](ArrayIndex index) const;
   const Value& operator[](int index) const;
-  ///@}
+  //@}
 
   /// If the array contains at least index+1 elements, returns the element
   /// value, otherwise returns defaultValue.
@@ -1499,8 +1496,7 @@ inline void swap(Value& a, Value& b) { a.swap(b); }
 #pragma warning(disable : 4251)
 #endif // if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
 
-#pragma pack(push)
-#pragma pack()
+#pragma pack(push, 8)
 
 namespace Json {
 
@@ -1916,8 +1912,7 @@ JSON_API IStream& operator>>(IStream&, Value&);
 #pragma warning(disable : 4251)
 #endif // if defined(JSONCPP_DISABLE_DLL_INTERFACE_WARNING)
 
-#pragma pack(push)
-#pragma pack()
+#pragma pack(push, 8)
 
 namespace Json {
 
@@ -2114,7 +2109,7 @@ private:
  *     - otherwise, it the values do not fit on one line, or the array contains
  *       object or non empty array, then print one value per line.
  *
- * If the Value have comments then they are outputted according to their
+ * If the Value have comments then they are outputed according to their
  *#CommentPlacement.
  *
  * \sa Reader, Value, Value::setComment()
@@ -2183,7 +2178,7 @@ private:
  *     - otherwise, it the values do not fit on one line, or the array contains
  *       object or non empty array, then print one value per line.
  *
- * If the Value have comments then they are outputted according to their
+ * If the Value have comments then they are outputed according to their
  #CommentPlacement.
  *
  * \sa Reader, Value, Value::setComment()
