@@ -14,10 +14,18 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
 		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(base);
 		IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
 
+#ifdef GAME_PS
+
+		if (strstr((const char*)(base + (0xA49742 - base)), "ProStreet08Release.exe"))
+		{
+			Init();
+		}
+#else
 		if ((base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base)) == EntryPoint) // Check if .exe file is compatible - Thanks to thelink2012 and MWisBest
 		{
 			Init();
 		}
+#endif
 		else
 		{
 			MessageBoxA(NULL, WrongEntryPointErrorString, "TexWizard", MB_ICONERROR);

@@ -5,9 +5,19 @@
     <LocalDebuggerWorkingDirectory>G:\Oyunlar\Need for Speed Carbon Dirty</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_PS|Win32'">
+    <LocalDebuggerCommand>G:\Oyunlar\Need for Speed ProStreet\NFS.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\Oyunlar\Need for Speed ProStreet</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Carbon|Win32'">
     <LocalDebuggerCommand>G:\Oyunlar\Need for Speed Carbon Dirty\NFSC.exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>G:\Oyunlar\Need for Speed Carbon Dirty</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_PS|Win32'">
+    <LocalDebuggerCommand>G:\Oyunlar\Need for Speed ProStreet\NFS.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\Oyunlar\Need for Speed ProStreet</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_UG2|Win32'">

@@ -20,6 +20,10 @@
 #include "Carbon_Address.h"
 #endif
 
+#ifdef GAME_PS
+#include "PS_Address.h"
+#endif
+
 std::vector<char*> packList = {};
 std::map<unsigned int, unsigned int> textureMap = {};
 
@@ -149,8 +153,13 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_30, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_31, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_32, ReplaceTexture, true);
+#ifdef GAME_PS
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_33J, ReplaceTexture, true);
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_34J, ReplaceTexture, true);
+#else
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_33, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_34, ReplaceTexture, true);
+#endif
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_35, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_36, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_37, ReplaceTexture, true);
@@ -183,7 +192,7 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_64, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_65, ReplaceTexture, true);
 
-#if (defined (GAME_CARBON) || defined (GAME_MW) || defined (GAME_UG2))
+#if (defined (GAME_PS) ||defined (GAME_CARBON) || defined (GAME_MW) || defined (GAME_UG2))
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_66, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_67, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_68, ReplaceTexture, true);
@@ -202,7 +211,7 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_81, ReplaceTexture, true);
 #endif
 	
-#ifdef GAME_CARBON
+#if (defined (GAME_PS) ||defined (GAME_CARBON))
 	
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_82, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_83, ReplaceTexture, true);
@@ -228,6 +237,18 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_103, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_104, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_105, ReplaceTexture, true);
+	
+#endif
+
+#ifdef GAME_PS
+	injector::WriteMemory(GetTextureInfo_Hook_Addr_106P, &ReplaceTexture, true);
+	injector::WriteMemory(GetTextureInfo_Hook_Addr_107P, &ReplaceTexture, true);
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_108J, ReplaceTexture, true);
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_109J, ReplaceTexture, true);
+#endif
+
+#ifdef GAME_CARBON
+
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_106, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_107, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_108, ReplaceTexture, true);
