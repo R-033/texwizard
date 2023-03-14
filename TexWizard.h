@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef GAME_UG
+#include "UG_Address.h"
+#endif
+
 #ifdef GAME_UG2
 #include "UG2_Address.h"
 #endif
@@ -18,15 +22,6 @@
 
 std::vector<char*> packList = {};
 std::map<unsigned int, unsigned int> textureMap = {};
-
-unsigned int(*bStringHash)(char* StringToHash) = (unsigned int(*)(char*))bStringHash_Addr;
-
-DWORD* (__cdecl* CreateResourceFile)(int a1, int a2, int a3, int a4, int a5) = (DWORD * (__cdecl*)(int, int, int, int, int))CreateResourceFile_Addr;
-int(__thiscall* ResourceFileBeginLoading)(DWORD* r, int unk1, int unk2) = (int(__thiscall*)(DWORD*, int, int))ResourceFileBeginLoading_Addr;
-
-int(__fastcall* LoadGlobalChunks)() = (int(__fastcall*)())LoadGlobalChunks_Addr;
-
-DWORD*(__cdecl* GetTextureInfo)(unsigned int hash, int returnDefault, int includeUnloadedTextures) = (DWORD*(__cdecl*)(unsigned int, int, int))GetTextureInfo_Addr;
 
 DWORD* __cdecl ReplaceTexture(unsigned int hash, int returnDefault, int includeUnloadedTextures)
 {
@@ -187,6 +182,8 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_63, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_64, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_65, ReplaceTexture, true);
+
+#if (defined (GAME_CARBON) || defined (GAME_MW) || defined (GAME_UG2))
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_66, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_67, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_68, ReplaceTexture, true);
@@ -203,6 +200,7 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_79, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_80, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_81, ReplaceTexture, true);
+#endif
 	
 #ifdef GAME_CARBON
 	
