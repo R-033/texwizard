@@ -4,6 +4,14 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef GAME_UG
+#include "UG_Address.h"
+#endif
+
+#ifdef GAME_UG2
+#include "UG2_Address.h"
+#endif
+
 #ifdef GAME_MW
 #include "MW_Address.h"
 #endif
@@ -12,17 +20,16 @@
 #include "Carbon_Address.h"
 #endif
 
+#ifdef GAME_PS
+#include "PS_Address.h"
+#endif
+
+#ifdef GAME_UC
+#include "UC_Address.h"
+#endif
+
 std::vector<char*> packList = {};
 std::map<unsigned int, unsigned int> textureMap = {};
-
-unsigned int(*bStringHash)(char* StringToHash) = (unsigned int(*)(char*))bStringHash_Addr;
-
-DWORD* (__cdecl* CreateResourceFile)(int a1, int a2, int a3, int a4, int a5) = (DWORD * (__cdecl*)(int, int, int, int, int))CreateResourceFile_Addr;
-int(__thiscall* ResourceFileBeginLoading)(DWORD* r, int unk1, int unk2) = (int(__thiscall*)(DWORD*, int, int))ResourceFileBeginLoading_Addr;
-
-int(__fastcall* LoadGlobalChunks)() = (int(__fastcall*)())LoadGlobalChunks_Addr;
-
-DWORD*(__cdecl* GetTextureInfo)(unsigned int hash, int returnDefault, int includeUnloadedTextures) = (DWORD*(__cdecl*)(unsigned int, int, int))GetTextureInfo_Addr;
 
 DWORD* __cdecl ReplaceTexture(unsigned int hash, int returnDefault, int includeUnloadedTextures)
 {
@@ -36,7 +43,12 @@ DWORD* __cdecl ReplaceTexture(unsigned int hash, int returnDefault, int includeU
 
 int __fastcall LoadPacks()
 {
+#ifdef GAME_UC
+	int result = LoadGlobalAChunks();
+#else
 	int result = LoadGlobalChunks();
+#endif
+	
 
 	// https://github.com/xan1242/xnfsmodfiles
 	for (int index = 0; index < packList.size(); index++)
@@ -47,6 +59,7 @@ int __fastcall LoadPacks()
 
 	return result;
 }
+
 
 void Init()
 {
@@ -114,11 +127,20 @@ void Init()
 		}
 	}
 
+#ifdef GAME_UC
+	// replace LoadGlobalAChunks call
+	injector::MakeJMP(LoadGlobalAChunks_Hook_Addr_1, LoadPacks, true);
+#else
 	// replace LoadGlobalChunks call
 	injector::MakeCALL(LoadGlobalChunks_Hook_Addr_1, LoadPacks, true);
+#endif
 	
 	// replace all GetTextureInfo calls
+#ifdef GAME_UC
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_1J, ReplaceTexture, true);
+#else
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_1, ReplaceTexture, true);
+#endif
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_2, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_3, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_4, ReplaceTexture, true);
@@ -131,6 +153,8 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_11, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_12, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_13, ReplaceTexture, true);
+
+#ifndef GAME_UC
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_14, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_15, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_16, ReplaceTexture, true);
@@ -150,8 +174,13 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_30, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_31, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_32, ReplaceTexture, true);
+#ifdef GAME_PS
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_33J, ReplaceTexture, true);
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_34J, ReplaceTexture, true);
+#else
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_33, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_34, ReplaceTexture, true);
+#endif
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_35, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_36, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_37, ReplaceTexture, true);
@@ -183,6 +212,8 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_63, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_64, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_65, ReplaceTexture, true);
+
+#if (defined (GAME_PS) ||defined (GAME_CARBON) || defined (GAME_MW) || defined (GAME_UG2))
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_66, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_67, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_68, ReplaceTexture, true);
@@ -199,8 +230,9 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_79, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_80, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_81, ReplaceTexture, true);
+#endif
 	
-#ifdef GAME_CARBON
+#if (defined (GAME_PS) ||defined (GAME_CARBON))
 	
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_82, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_83, ReplaceTexture, true);
@@ -226,6 +258,18 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_103, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_104, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_105, ReplaceTexture, true);
+	
+#endif
+
+#ifdef GAME_PS
+	injector::WriteMemory(GetTextureInfo_Hook_Addr_106P, &ReplaceTexture, true);
+	injector::WriteMemory(GetTextureInfo_Hook_Addr_107P, &ReplaceTexture, true);
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_108J, ReplaceTexture, true);
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_109J, ReplaceTexture, true);
+#endif
+
+#ifdef GAME_CARBON
+
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_106, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_107, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_108, ReplaceTexture, true);
@@ -277,6 +321,8 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_154, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_155, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_156, ReplaceTexture, true);
+
+#endif
 
 #endif
 }
