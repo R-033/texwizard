@@ -24,6 +24,10 @@
 #include "PS_Address.h"
 #endif
 
+#ifdef GAME_UC
+#include "UC_Address.h"
+#endif
+
 std::vector<char*> packList = {};
 std::map<unsigned int, unsigned int> textureMap = {};
 
@@ -39,7 +43,12 @@ DWORD* __cdecl ReplaceTexture(unsigned int hash, int returnDefault, int includeU
 
 int __fastcall LoadPacks()
 {
+#ifdef GAME_UC
+	int result = LoadGlobalAChunks();
+#else
 	int result = LoadGlobalChunks();
+#endif
+	
 
 	// https://github.com/xan1242/xnfsmodfiles
 	for (int index = 0; index < packList.size(); index++)
@@ -50,6 +59,7 @@ int __fastcall LoadPacks()
 
 	return result;
 }
+
 
 void Init()
 {
@@ -117,11 +127,20 @@ void Init()
 		}
 	}
 
+#ifdef GAME_UC
+	// replace LoadGlobalAChunks call
+	injector::MakeJMP(LoadGlobalAChunks_Hook_Addr_1, LoadPacks, true);
+#else
 	// replace LoadGlobalChunks call
 	injector::MakeCALL(LoadGlobalChunks_Hook_Addr_1, LoadPacks, true);
+#endif
 	
 	// replace all GetTextureInfo calls
+#ifdef GAME_UC
+	injector::MakeJMP(GetTextureInfo_Hook_Addr_1J, ReplaceTexture, true);
+#else
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_1, ReplaceTexture, true);
+#endif
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_2, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_3, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_4, ReplaceTexture, true);
@@ -134,6 +153,8 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_11, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_12, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_13, ReplaceTexture, true);
+
+#ifndef GAME_UC
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_14, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_15, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_16, ReplaceTexture, true);
@@ -300,6 +321,8 @@ void Init()
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_154, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_155, ReplaceTexture, true);
 	injector::MakeCALL(GetTextureInfo_Hook_Addr_156, ReplaceTexture, true);
+
+#endif
 
 #endif
 }
