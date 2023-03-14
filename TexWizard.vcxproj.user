@@ -10,4 +10,14 @@
     <LocalDebuggerWorkingDirectory>G:\Oyunlar\Need for Speed Carbon Dirty</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_UG2|Win32'">
+    <LocalDebuggerCommand>G:\Games\Need for Speed Underground 2\SPEED2.EXE</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\Games\Need for Speed Underground 2</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_UG2|Win32'">
+    <LocalDebuggerCommand>G:\Games\Need for Speed Underground 2\SPEED2.EXE</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>G:\Games\Need for Speed Underground 2</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

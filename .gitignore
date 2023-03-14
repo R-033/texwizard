@@ -14,8 +14,10 @@
 #
 Debug_Carbon/
 Debug_MW/
+Debug_UG2/
 Release_Carbon/
 Release_MW/
+Release_UG2/
 
 # Build results
 [Dd]ebug/

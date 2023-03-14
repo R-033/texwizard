@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef GAME_UG2
+#include "UG2_Address.h"
+#endif
+
 #ifdef GAME_MW
 #include "MW_Address.h"
 #endif
