@@ -56,6 +56,11 @@ int __fastcall LoadPacks()
 	for (int index = 0; index < packList.size(); index++)
 	{
 		DWORD* r = CreateResourceFile((int)packList[index], 1, 0, 0, 0);
+#ifdef GAME_UC
+		r[10] = 0x2000;
+		r[11] = *(int*)0xD3BDD4;
+		r[9] = SharedStringPoolAllocate(packList[index]);
+#endif
 		ResourceFileBeginLoading(r, 0, 0);
 	}
 

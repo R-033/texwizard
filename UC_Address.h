@@ -12,6 +12,8 @@
 #define LoadGlobalAChunks_Addr 0x6AE680
 #define GetTextureInfo_Addr 0x53CF30
 
+#define SharedStringPoolAllocate_Addr 0x4B4BA0
+
 #define LoadGlobalAChunks_Hook_Addr_1 0x6AF043
 
 #define GetTextureInfo_Hook_Addr_1J 0x53DF50
@@ -36,3 +38,5 @@ int(__thiscall* ResourceFileBeginLoading)(DWORD* r, int unk1, int unk2) = (int(_
 int(__fastcall* LoadGlobalAChunks)() = (int(__fastcall*)())LoadGlobalAChunks_Addr;
 
 DWORD* (__cdecl* GetTextureInfo)(unsigned int hash, int returnDefault, int includeUnloadedTextures) = (DWORD * (__cdecl*)(unsigned int, int, int))GetTextureInfo_Addr;
+
+unsigned int(*SharedStringPoolAllocate)(const char* String) = (unsigned int(*)(const char*))SharedStringPoolAllocate_Addr;
