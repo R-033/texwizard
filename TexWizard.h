@@ -3,6 +3,8 @@
 #include "json/json.h"
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #ifdef GAME_UG
 #include "UG_Address.h"
@@ -117,13 +119,42 @@ void Init()
 			Json::String key = texture[0].asString();
 			Json::String value = texture[1].asString();
 
-			char* keyChar = new char[key.length() + 1];
-			strcpy(keyChar, key.c_str());
+			unsigned int keyHash;
+			unsigned int valueHash;
 
-			char* valueChar = new char[value.length() + 1];
-			strcpy(valueChar, value.c_str());
+			if (key.rfind("0x", 0) == 0)
+			{
+				key.erase(0, 2);
 
-			textureMap[bStringHash(keyChar)] = bStringHash(valueChar);
+				std::istringstream converter(key);
+				
+				converter >> std::hex >> keyHash;
+			}
+			else
+			{
+				char* keyChar = new char[key.length() + 1];
+				strcpy(keyChar, key.c_str());
+
+				keyHash = bStringHash(keyChar);
+			}
+
+			if (value.rfind("0x", 0) == 0)
+			{
+				value.erase(0, 2);
+
+				std::istringstream converter(value);
+
+				converter >> std::hex >> valueHash;
+			}
+			else
+			{
+				char* valueChar = new char[value.length() + 1];
+				strcpy(valueChar, value.c_str());
+
+				valueHash = bStringHash(valueChar);
+			}
+
+			textureMap[keyHash] = valueHash;
 		}
 	}
 
