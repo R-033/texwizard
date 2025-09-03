@@ -6,30 +6,26 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include <Windows.h>  
-#include <Shlwapi.h>   
+#include <Windows.h>
+#include <set>
+#include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 
 #ifdef GAME_UG
 #include "UG_Address.h"
 #endif
-
 #ifdef GAME_UG2
 #include "UG2_Address.h"
 #endif
-
 #ifdef GAME_MW
 #include "MW_Address.h"
 #endif
-
 #ifdef GAME_CARBON
 #include "Carbon_Address.h"
 #endif
-
 #ifdef GAME_PS
 #include "PS_Address.h"
 #endif
-
 #ifdef GAME_UC
 #include "UC_Address.h"
 #endif
@@ -44,13 +40,6 @@ static bool open_rel_or_up(std::ifstream& ifs, const std::string& rel)
 	ifs.clear();
 	ifs.open("..\\" + rel, std::ios::in | std::ios::binary);
 	return ifs.is_open();
-}
-
-static bool file_exists_rel_or_up(const std::string& rel)
-{
-	if (PathFileExistsA(rel.c_str())) return true;
-	std::string up = std::string("..\\") + rel;
-	return PathFileExistsA(up.c_str());
 }
 
 static bool try_read_json_file(const std::string& relPath, Json::Value& outRoot, std::string* optErr = nullptr)
@@ -82,19 +71,44 @@ static void parse_key_or_hex_to_hash(const std::string& s, unsigned int& outHash
 	delete[] c;
 }
 
-static DWORD get_file_attr_rel_or_up(const std::string& rel)
+static std::string dirname_of(const std::string& p)
 {
-	DWORD a = GetFileAttributesA(rel.c_str());
-	if (a != INVALID_FILE_ATTRIBUTES) return a;
-	std::string up = std::string("..\\") + rel;
-	return GetFileAttributesA(up.c_str());
+	size_t pos = p.find_last_of("\\/");
+	return (pos == std::string::npos) ? std::string(".") : p.substr(0, pos);
 }
 
-static bool is_regular_file_rel_or_up(const std::string& rel)
+static std::string join_path(const std::string& a, const std::string& b)
 {
-	DWORD a = get_file_attr_rel_or_up(rel);
-	return a != INVALID_FILE_ATTRIBUTES && !(a & FILE_ATTRIBUTE_DIRECTORY);
+	if (a.empty()) return b;
+	char last = a.back();
+	if (last == '\\' || last == '/') return a + b;
+	return a + "\\" + b;
 }
+
+static bool try_read_json_file_resolved(const std::string& path, Json::Value& outRoot)
+{
+	std::ifstream ifs(path, std::ios::in | std::ios::binary);
+	if (!ifs.is_open())
+	{
+		std::string up = std::string("..\\") + path;
+		ifs.open(up, std::ios::in | std::ios::binary);
+		if (!ifs.is_open()) return false;
+	}
+	Json::CharReaderBuilder b;
+	JSONCPP_STRING errs;
+	return parseFromStream(b, ifs, &outRoot, &errs);
+}
+
+static std::string exe_dir()
+{
+	char buf[MAX_PATH]{ 0 };
+	DWORD n = GetModuleFileNameA(NULL, buf, MAX_PATH);
+	if (n == 0 || n >= MAX_PATH) return ".";
+	std::string s(buf);
+	size_t p = s.find_last_of("\\/");
+	return (p == std::string::npos) ? std::string(".") : s.substr(0, p);
+}
+
 
 DWORD* __cdecl ReplaceTexture(unsigned int hash, int returnDefault, int includeUnloadedTextures)
 {
@@ -129,79 +143,85 @@ int __fastcall LoadPacks()
 
 void Init()
 {
-	const char* rootDir = "TexturePacks";
-	char pattern[MAX_PATH]{ 0 };
-	snprintf(pattern, sizeof(pattern), "%s\\*.json", rootDir);
+	SetCurrentDirectoryA(exe_dir().c_str());
 
-	WIN32_FIND_DATAA fd{};
-	HANDLE hFind = FindFirstFileA(pattern, &fd);
-	if (hFind != INVALID_HANDLE_VALUE)
+	const char* roots[2] = { "TexturePacks", "scripts\\TexturePacks" };
+	std::set<std::string> seenJson;
+
+	for (int r = 0; r < 2; ++r)
 	{
+		char pattern[MAX_PATH]{ 0 };
+		snprintf(pattern, sizeof(pattern), "%s\\*.json", roots[r]);
+
+		WIN32_FIND_DATAA fd{};
+		HANDLE hFind = FindFirstFileA(pattern, &fd);
+		if (hFind == INVALID_HANDLE_VALUE) continue;
+
 		do
 		{
 			if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 				continue;
 
-			// json path
-			std::string jsonPath = std::string(rootDir) + "\\" + fd.cFileName;
+			std::string jsonPath = join_path(roots[r], fd.cFileName);
 
-			// base name
+			std::string jsonKey = jsonPath;
+			for (auto& c : jsonKey) if (c == '/') c = '\\';
+			if (seenJson.count(jsonKey)) continue;
+			seenJson.insert(jsonKey);
+
 			std::string fname(fd.cFileName);
 			size_t dot = fname.find_last_of('.');
 			std::string base = (dot == std::string::npos) ? fname : fname.substr(0, dot);
 
-			// candidate BINs
-			std::string binLower = std::string(rootDir) + "\\" + base + ".bin";
-			std::string binUpper = std::string(rootDir) + "\\" + base + ".BIN";
 
-			std::string dataPath;
-			if (is_regular_file_rel_or_up(binLower)) dataPath = binLower;
-			else if (is_regular_file_rel_or_up(binUpper)) dataPath = binUpper;
+			std::string bin1 = std::string("TexturePacks\\") + base + ".bin";
+			std::string bin1U = std::string("TexturePacks\\") + base + ".BIN";
+			std::string bin2 = std::string("scripts\\TexturePacks\\") + base + ".bin";
+			std::string bin2U = std::string("scripts\\TexturePacks\\") + base + ".BIN";
+
+			std::string binResolved;
+			if (PathFileExistsA(bin1.c_str()))  binResolved = bin1;
+			else if (PathFileExistsA(bin1U.c_str())) binResolved = bin1U;
+			else if (PathFileExistsA(bin2.c_str()))  binResolved = bin2;
+			else if (PathFileExistsA(bin2U.c_str())) binResolved = bin2U;
 			else
 			{
-				std::string msg = "Missing BIN for pack base name: " + base + " in TexturePacks";
+				std::string msg =
+					"BIN not found for pack: " + base +
+					"\nChecked:\n  " + bin1 + "\n  " + bin1U + "\n  " + bin2 + "\n  " + bin2U;
 				MessageBoxA(NULL, msg.c_str(), "TexWizard", MB_ICONERROR);
-				goto NextFile;
+				continue;
 			}
 
+			char* dataPathChar = new char[binResolved.length() + 1];
+			strcpy(dataPathChar, binResolved.c_str());
+			packList.push_back(dataPathChar);
+
+			Json::Value root;
+			if (!try_read_json_file_resolved(jsonPath, root))
 			{
-				Json::Value root;
-				std::string err;
-				if (!try_read_json_file(jsonPath, root, &err))
-				{
-					std::string msg = "Failed to parse pack JSON: " + jsonPath;
-					MessageBoxA(NULL, msg.c_str(), "TexWizard", MB_ICONERROR);
-					goto NextFile;
-				}
-
-				// Queue BIN for loading
-				char* dataPathChar = new char[dataPath.length() + 1];
-				strcpy(dataPathChar, dataPath.c_str());
-				packList.push_back(dataPathChar);
-
-				// Build texture map
-				const Json::Value& textures = root["textures"];
-				for (Json::ArrayIndex i = 0; i < textures.size(); i++)
-				{
-					const Json::Value& item = textures[i];
-					if (!item.isArray() || item.size() < 2) continue;
-
-					const std::string key = item[0].asString();
-					const std::string value = item[1].asString();
-
-					unsigned int keyHash = 0;
-					unsigned int valHash = 0;
-					parse_key_or_hex_to_hash(key, keyHash);
-					parse_key_or_hex_to_hash(value, valHash);
-					textureMap[keyHash] = valHash;
-				}
+				std::string msg = "Failed to parse pack JSON: " + jsonPath;
+				MessageBoxA(NULL, msg.c_str(), "TexWizard", MB_ICONERROR);
+				continue;
 			}
 
-		NextFile:;
+			const Json::Value& textures = root["textures"];
+			for (Json::ArrayIndex i = 0; i < textures.size(); i++)
+			{
+				const Json::Value& item = textures[i];
+				if (!item.isArray() || item.size() < 2) continue;
+
+				unsigned int keyHash = 0, valHash = 0;
+				parse_key_or_hex_to_hash(item[0].asString(), keyHash);
+				parse_key_or_hex_to_hash(item[1].asString(), valHash);
+				textureMap[keyHash] = valHash;
+			}
+
 		} while (FindNextFileA(hFind, &fd));
 		FindClose(hFind);
 	}
 
+	//Legacy support
 	{
 		Json::Value root;
 		if (try_read_json_file("TexWizard.json", root, nullptr))
