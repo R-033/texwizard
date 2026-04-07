@@ -5,6 +5,9 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <filesystem>
+#include <set>
+#include <algorithm>
 
 #ifdef GAME_UG
 #include "UG_Address.h"
@@ -67,6 +70,79 @@ int __fastcall LoadPacks()
 	return result;
 }
 
+std::string NormalizePath(std::string path)
+{
+	std::replace(path.begin(), path.end(), '/', '\\');
+	std::transform(path.begin(), path.end(), path.begin(), ::tolower);
+	return path;
+}
+
+void LoadTexturePack(const std::string& packRoot)
+{
+	std::string configPath = packRoot + "\\meta.json";
+	std::string dataPath = packRoot + "\\textures.bin";
+
+	std::ifstream ifs2;
+	ifs2.open("..\\" + configPath);
+
+	Json::CharReaderBuilder builder2;
+	Json::Value root2;
+
+	JSONCPP_STRING errs2;
+	if (!parseFromStream(builder2, ifs2, &root2, &errs2))
+	{
+		MessageBoxA(NULL, ("Failed to parse texture pack configuration " + configPath).c_str(), "TexWizard", MB_ICONERROR);
+		return;
+	}
+
+	char* dataPathChar = new char[dataPath.length() + 1];
+	strcpy(dataPathChar, dataPath.c_str());
+
+	packList.push_back(dataPathChar);
+
+	Json::Value textures = root2["textures"];
+
+	for (int index = 0; index < textures.size(); index++)
+	{
+		Json::Value texture = textures[index];
+
+		Json::String key = texture[0].asString();
+		Json::String value = texture[1].asString();
+
+		unsigned int keyHash;
+		unsigned int valueHash;
+
+		if (key.rfind("0x", 0) == 0)
+		{
+			key.erase(0, 2);
+			std::istringstream converter(key);
+			converter >> std::hex >> keyHash;
+		}
+		else
+		{
+			char* keyChar = new char[key.length() + 1];
+			strcpy(keyChar, key.c_str());
+			keyHash = bStringHash(keyChar);
+			delete[] keyChar;
+		}
+
+		if (value.rfind("0x", 0) == 0)
+		{
+			value.erase(0, 2);
+			std::istringstream converter(value);
+			converter >> std::hex >> valueHash;
+		}
+		else
+		{
+			char* valueChar = new char[value.length() + 1];
+			strcpy(valueChar, value.c_str());
+			valueHash = bStringHash(valueChar);
+			delete[] valueChar;
+		}
+
+		textureMap[keyHash] = valueHash;
+	}
+}
 
 void Init()
 {
@@ -83,83 +159,47 @@ void Init()
 		return;
 	}
 
-	// load texture packs
-	Json::Value packs = root["packs"];
+	// anti duplicate checking list
+	std::set<std::string> loadedPacks;
 
+	Json::Value packs = root["packs"];
 	for (int index = 0; index < packs.size(); index++)
 	{
-		Json::Value pack = packs[index];
+		std::string packRoot = packs[index].asString();
+		loadedPacks.insert(NormalizePath(packRoot));
+		LoadTexturePack(packRoot);
+	}
 
-		Json::String packString = pack.asString();
+	bool autoScan = root.get("autoScan", true).asBool();
 
-		std::string packRoot = packString.c_str();
+	if (autoScan)
+	{
+		namespace fs = std::filesystem;
+		std::string searchDir = "..\\TexturePacks";
 
-		std::string configPath = packRoot + "\\meta.json";
-		std::string dataPath = packRoot + "\\textures.bin";
-
-		std::ifstream ifs2;
-		ifs2.open("..\\" + configPath);
-
-		Json::CharReaderBuilder builder2;
-		Json::Value root2;
-
-		JSONCPP_STRING errs2;
-		if (!parseFromStream(builder2, ifs2, &root2, &errs2))
+		if (fs::exists(searchDir) && fs::is_directory(searchDir))
 		{
-			MessageBoxA(NULL, ((std::string)"Failed to parse texture pack configuration " + configPath).c_str(), "TexWizard", MB_ICONERROR);
-			continue;
-		}
-
-		char* dataPathChar = new char[dataPath.length() + 1];
-		strcpy(dataPathChar, dataPath.c_str());
-
-		packList.push_back(dataPathChar);
-
-		Json::Value textures = root2["textures"];
-
-		for (int index = 0; index < textures.size(); index++)
-		{
-			Json::Value texture = textures[index];
-
-			Json::String key = texture[0].asString();
-			Json::String value = texture[1].asString();
-
-			unsigned int keyHash;
-			unsigned int valueHash;
-
-			if (key.rfind("0x", 0) == 0)
+			for (const auto& entry : fs::recursive_directory_iterator(searchDir))
 			{
-				key.erase(0, 2);
+				if (entry.is_regular_file() && entry.path().filename() == "meta.json")
+				{
+					std::string fullPath = entry.path().parent_path().string();
 
-				std::istringstream converter(key);
-				
-				converter >> std::hex >> keyHash;
+					std::string packRoot = fullPath;
+					if (packRoot.find("..\\") == 0) {
+						packRoot = packRoot.substr(3);
+					}
+					else if (packRoot.find("../") == 0) {
+						packRoot = packRoot.substr(3);
+					}
+
+					if (loadedPacks.find(NormalizePath(packRoot)) == loadedPacks.end())
+					{
+						loadedPacks.insert(NormalizePath(packRoot));
+						LoadTexturePack(packRoot);
+					}
+				}
 			}
-			else
-			{
-				char* keyChar = new char[key.length() + 1];
-				strcpy(keyChar, key.c_str());
-
-				keyHash = bStringHash(keyChar);
-			}
-
-			if (value.rfind("0x", 0) == 0)
-			{
-				value.erase(0, 2);
-
-				std::istringstream converter(value);
-
-				converter >> std::hex >> valueHash;
-			}
-			else
-			{
-				char* valueChar = new char[value.length() + 1];
-				strcpy(valueChar, value.c_str());
-
-				valueHash = bStringHash(valueChar);
-			}
-
-			textureMap[keyHash] = valueHash;
 		}
 	}
 
